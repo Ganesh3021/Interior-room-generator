@@ -1,0 +1,12 @@
+specVersion: "v1beta"
+serviceId: "ai-interior-room-design"
+location: "us-central1"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "fdcdb"
+      cloudSql:
+        instanceId: "ai-interior-room-design-fdc"
+      # schemaValidation: "COMPATIBLE"
+connectorDirs: ["./connector"]
