@@ -3,25 +3,11 @@ import React, { useState } from "react";
 import ImageSelection from "./_components/ImageSelection";
 import RoomType from "./_components/RoomType";
 import DesignType from "./_components/DesignType";
-import { getDownloadURL, ref, getStorage, uploadBytes } from "firebase/storage";
 import axios from "axios";
-import { initializeApp } from "firebase/app";
 import CustomLoading from "./_components/CustomLoading";
 import ImageModal from "./_components/ImageModal";
 import { motion } from "framer-motion";
 import { UserButton } from "@clerk/nextjs";
-
-// Firebase Configuration
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID",
-};
-
-const firebaseApp = initializeApp(firebaseConfig);
 
 function Createnew() {
   const [formData, setFormData] = useState({});
@@ -35,47 +21,39 @@ function Createnew() {
     }));
   };
 
-  const storage = getStorage(firebaseApp);
-
   const GenerateAiImage = async () => {
     setLoading(true);
     try {
-      const rawImageURL = await SaveRawImageToFirebase();
+      const base64Image = await getBase64Image(formData.image);
+      if (!base64Image) {
+        setLoading(false);
+        return;
+      }
+
       const result = await axios.post("/api/redesign-room", {
-        imageUrl: rawImageURL,
+        imageUrl: base64Image, // Base64 string
         roomType: formData?.roomType,
         designType: formData?.designType,
         userEmail: "",
       });
 
-      if (result.data && result.data.result) {
+      if (result.data?.result) {
         setOutputImage(result.data.result);
-      } else {
-        alert("No Image Selected.");
       }
     } catch (error) {
-      alert("No Image Selected.");
+      console.error("Error generating image:", error.message || error);
     }
     setLoading(false);
   };
 
-  const SaveRawImageToFirebase = async () => {
-    const fileName = Date.now() + "raw.png";
-    const storageRef = ref(
-      storage,
-      "gs://ai-interior-room-design.firebasestorage.app/room-design/" + fileName
-    );
-
-    const image = formData.image;
-    if (image) {
-      await uploadBytes(storageRef, image);
-    } else {
-      console.error("No image selected for upload.");
-      return null;
-    }
-
-    const downloadURL = await getDownloadURL(storageRef);
-    return downloadURL;
+  const getBase64Image = (file) => {
+    return new Promise((resolve, reject) => {
+      if (!file) return resolve(null);
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
   };
 
   return (
@@ -85,21 +63,20 @@ function Createnew() {
       transition={{ duration: 1 }}
       className="relative min-h-screen overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-black"
     >
-      { /* Transparent Header */}
-        <header className="absolute top-0 left-0 w-full z-50 px-6 py-4 flex justify-between items-center bg-black/20 ">
-          <nav className="space-x-6 text-white flex-1 flex justify-center items-center">
-            <a href="/" className="hover:underline">Home</a>
-            <a href="/dashboard" className="hover:underline">Dashboard</a>
-            <a href="/about" className="hover:underline">About Us</a>
-            <a href="/learn-more" className="hover:underline">Learn More</a>
+      {/* Transparent Header */}
+      <header className="absolute top-0 left-0 w-full z-50 px-6 py-4 flex justify-between items-center bg-black/20">
+        <nav className="space-x-6 text-white flex-1 flex justify-center items-center">
+          <a href="/" className="hover:underline">Home</a>
+          <a href="/dashboard" className="hover:underline">Dashboard</a>
+          <a href="/about" className="hover:underline">About Us</a>
+          <a href="/learn-more" className="hover:underline">Learn More</a>
+        </nav>
+        <div className="flex items-center">
+          <UserButton />
+        </div>
+      </header>
 
-          </nav>
-          <div className="flex items-center">
-            <UserButton />
-          </div>
-        </header>
-
-        {/* Background Image */}
+      {/* Background */}
       <div className="absolute top-0 left-0 w-full h-full z-0">
         <img
           src="/main.jpg"
@@ -156,7 +133,6 @@ function Createnew() {
             >
               <button
                 onClick={GenerateAiImage}
-                
                 className="relative bg-yellow-500 hover:bg-yellow-400 transition-all duration-300 ease-in-out text-white font-bold px-8 py-4 rounded-2xl shadow-xl flex items-center gap-3"
               >
                 {loading ? (

@@ -4,7 +4,10 @@ import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import {CalSans} from "next/font/google";
+import { Raleway } from 'next/font/google';
+import localFont from 'next/font/local';
+
+const raleway = Raleway({ subsets: ['latin'], variable: '--font-raleway' });
 
 export default function Home() {
   return (
@@ -64,7 +67,7 @@ export default function Home() {
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 1 }}
-            className="text-white text-4xl md:text-5xl font-extrabold top-0 font-family calsans"
+            className="text-white text-4xl md:text-5xl font-extrabold top-0 font-family-raleway "
           >
             Welcome to Visual AI
           </motion.h1> 

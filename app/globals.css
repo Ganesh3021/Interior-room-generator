@@ -14,6 +14,7 @@ body {
 
 body {
   font-family: 'CalSans', sans-serif;
+  font-family: var(--font-raleway);
 }
 @layer base {
   :root {
@@ -42,6 +43,8 @@ body {
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
+    --font-calsans: 'Cal Sans', sans-serif;
+    --font-raleway: 'Raleway', sans-serif;
   }
   .dark {
     --background: 0 0% 3.9%;
